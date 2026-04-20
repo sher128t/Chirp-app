@@ -1,0 +1,424 @@
+// Prisma Schema for Finch-like Self-Care App
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTH & USER MODULE
+// ============================================
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  lastLoginAt  DateTime? @map("last_login_at")
+  timezone     String   @default("UTC")
+  locale       String   @default("en")
+
+  // Relations
+  settings        UserSettings?
+  pet             Pet?
+  inventoryItems  InventoryItem[]
+  moodEntries     MoodEntry[]
+  goals           Goal[]
+  journalEntries  JournalEntry[]
+  userQuests      UserQuest[]
+  streaks         Streak[]
+  wallet          Wallet?
+  transactions    Transaction[]
+  subscription    Subscription?
+  refreshTokens   RefreshToken[]
+  notificationLog NotificationLog[]
+  pushTokens      PushToken[]
+  breathingSessions BreathingSession[]
+
+  @@map("users")
+}
+
+model UserSettings {
+  id                   String   @id @default(uuid())
+  userId               String   @unique @map("user_id")
+  notificationsEnabled Boolean  @default(true) @map("notifications_enabled")
+  marketingOptIn       Boolean  @default(false) @map("marketing_opt_in")
+  darkMode             Boolean  @default(false) @map("dark_mode")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+// ============================================
+// PET & GAMIFICATION MODULE
+// ============================================
+
+model Pet {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  name      String   @default("Pip")
+  pronouns  String   @default("they/them")
+  level     Int      @default(1)
+  xp        Int      @default(0)
+  energy    Int      @default(50)
+  happiness Int      @default(50)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("pets")
+}
+
+model Item {
+  id           String   @id @default(uuid())
+  code         String   @unique // e.g., "hat_wizard", "bg_forest"
+  name         String
+  description  String?
+  type         ItemType // outfit, background, decor, accessory
+  slot         ItemSlot // hat, body, background, frame, etc.
+  rarity       ItemRarity @default(COMMON)
+  priceSoft    Int      @default(0) @map("price_soft") // coins
+  priceHard    Int      @default(0) @map("price_hard") // gems
+  premiumOnly  Boolean  @default(false) @map("premium_only")
+  metadataJson Json?    @map("metadata_json") // asset paths, colors, etc.
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  inventoryItems InventoryItem[]
+  shopItems      ShopItem[]
+
+  @@map("items")
+}
+
+enum ItemType {
+  OUTFIT
+  BACKGROUND
+  DECOR
+  ACCESSORY
+  FRAME
+}
+
+enum ItemSlot {
+  HAT
+  BODY
+  BACKGROUND
+  FRAME
+  ACCESSORY_1
+  ACCESSORY_2
+}
+
+enum ItemRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+model InventoryItem {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  itemId    String   @map("item_id")
+  equipped  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+  @@map("inventory_items")
+}
+
+// ============================================
+// SELF-CARE & TRACKING MODULE
+// ============================================
+
+model MoodEntry {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  moodScore Int      @map("mood_score") // 1-5
+  moodLabel String   @map("mood_label") // "Happy", "Anxious", etc.
+  tags      String[] @default([])
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("mood_entries")
+}
+
+model Goal {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  title           String
+  selfCareArea    SelfCareArea @map("self_care_area")
+  scheduleType    ScheduleType @default(DAILY) @map("schedule_type")
+  scheduleDataJson Json?    @map("schedule_data_json") // for custom schedules
+  createdAt       DateTime  @default(now()) @map("created_at")
+  archivedAt      DateTime? @map("archived_at")
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  completions GoalCompletion[]
+
+  @@map("goals")
+}
+
+enum SelfCareArea {
+  MIND
+  BODY
+  SOCIAL
+  SLEEP
+  NUTRITION
+  CREATIVITY
+  PRODUCTIVITY
+}
+
+enum ScheduleType {
+  DAILY
+  WEEKDAYS
+  WEEKENDS
+  CUSTOM
+}
+
+model GoalCompletion {
+  id          String   @id @default(uuid())
+  goalId      String   @map("goal_id")
+  date        DateTime @db.Date // ISO date
+  value       Boolean  @default(true) // could be numeric for tracking amounts
+  completedAt DateTime @default(now()) @map("completed_at")
+
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@unique([goalId, date])
+  @@map("goal_completions")
+}
+
+model JournalEntry {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String?
+  content   String
+  tags      String[] @default([])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("journal_entries")
+}
+
+model BreathingSession {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  exerciseType String   @map("exercise_type") // "box", "478", "relaxing"
+  durationSecs Int      @map("duration_secs")
+  completedAt  DateTime @default(now()) @map("completed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("breathing_sessions")
+}
+
+// ============================================
+// QUESTS, STREAKS & REWARDS MODULE
+// ============================================
+
+model QuestTemplate {
+  id              String       @id @default(uuid())
+  code            String       @unique // e.g., "daily_mood_check"
+  title           String
+  description     String?
+  type            QuestType    @default(DAILY)
+  selfCareArea    SelfCareArea? @map("self_care_area")
+  requirementsJson Json        @map("requirements_json") // { "action": "mood_entry", "count": 1 }
+  rewardsJson     Json         @map("rewards_json") // { "xp": 10, "coins": 5 }
+  active          Boolean      @default(true)
+  createdAt       DateTime     @default(now()) @map("created_at")
+
+  userQuests UserQuest[]
+
+  @@map("quest_templates")
+}
+
+enum QuestType {
+  DAILY
+  WEEKLY
+  ACHIEVEMENT
+  SPECIAL
+}
+
+model UserQuest {
+  id              String      @id @default(uuid())
+  userId          String      @map("user_id")
+  questTemplateId String      @map("quest_template_id")
+  state           QuestState  @default(ACTIVE)
+  progressJson    Json        @default("{}") @map("progress_json") // { "count": 0 }
+  expiresAt       DateTime?   @map("expires_at")
+  claimedAt       DateTime?   @map("claimed_at")
+  createdAt       DateTime    @default(now()) @map("created_at")
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questTemplate QuestTemplate @relation(fields: [questTemplateId], references: [id], onDelete: Cascade)
+
+  @@map("user_quests")
+}
+
+enum QuestState {
+  ACTIVE
+  COMPLETED
+  CLAIMED
+  EXPIRED
+}
+
+model Streak {
+  id                String       @id @default(uuid())
+  userId            String       @map("user_id")
+  selfCareArea      SelfCareArea @map("self_care_area")
+  currentStreakDays Int          @default(0) @map("current_streak_days")
+  longestStreakDays Int          @default(0) @map("longest_streak_days")
+  lastActiveDate    DateTime?    @db.Date @map("last_active_date")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, selfCareArea])
+  @@map("streaks")
+}
+
+model Wallet {
+  id          String @id @default(uuid())
+  userId      String @unique @map("user_id")
+  softBalance Int    @default(0) @map("soft_balance") // coins
+  hardBalance Int    @default(0) @map("hard_balance") // gems
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("wallets")
+}
+
+model Transaction {
+  id        String          @id @default(uuid())
+  userId    String          @map("user_id")
+  type      TransactionType
+  amount    Int
+  currency  Currency
+  source    String? // e.g., "quest:daily_mood_check", "purchase:item_xyz"
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+enum TransactionType {
+  QUEST_REWARD
+  STREAK_BONUS
+  PURCHASE
+  REFUND
+  ADMIN_GRANT
+  SUBSCRIPTION_BONUS
+}
+
+enum Currency {
+  SOFT // coins
+  HARD // gems
+}
+
+// ============================================
+// SHOP MODULE
+// ============================================
+
+model ShopItem {
+  id            String    @id @default(uuid())
+  itemId        String    @map("item_id")
+  priceCurrency Currency  @map("price_currency")
+  priceAmount   Int       @map("price_amount")
+  availableFrom DateTime  @default(now()) @map("available_from")
+  availableTo   DateTime? @map("available_to")
+  featured      Boolean   @default(false)
+  metadataJson  Json?     @map("metadata_json")
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@map("shop_items")
+}
+
+// ============================================
+// SUBSCRIPTION MODULE
+// ============================================
+
+model Subscription {
+  id           String           @id @default(uuid())
+  userId       String           @unique @map("user_id")
+  tier         SubscriptionTier @default(FREE)
+  fakeStripeId String?          @map("fake_stripe_id")
+  startedAt    DateTime         @default(now()) @map("started_at")
+  expiresAt    DateTime?        @map("expires_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+enum SubscriptionTier {
+  FREE
+  PREMIUM
+}
+
+// ============================================
+// NOTIFICATIONS MODULE (STUB)
+// ============================================
+
+model NotificationLog {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  body      String
+  sent      Boolean          @default(false)
+  sentAt    DateTime?        @map("sent_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_logs")
+}
+
+enum NotificationType {
+  REMINDER
+  QUEST_COMPLETE
+  STREAK_MILESTONE
+  PROMOTION
+  SYSTEM
+}
+
+model PushToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  platform  String   // "ios", "android"
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("push_tokens")
+}
+

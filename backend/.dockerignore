@@ -1,0 +1,25 @@
+# Dependencies - must be built inside container
+node_modules
+
+# Build output
+dist
+
+# Dev/test files
+coverage
+*.log
+*.md
+!README.md
+
+# IDE
+.idea
+.vscode
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+.env.local
+.env.*.local
+

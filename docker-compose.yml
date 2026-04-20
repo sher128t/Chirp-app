@@ -2,18 +2,18 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
-    container_name: finch-postgres
+    container_name: chirp-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: finch
-      POSTGRES_PASSWORD: finch_secret
-      POSTGRES_DB: finch_db
+      POSTGRES_USER: chirp
+      POSTGRES_PASSWORD: chirp_secret
+      POSTGRES_DB: chirp_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U finch -d finch_db"]
+      test: ["CMD-SHELL", "pg_isready -U chirp -d chirp_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -21,7 +21,7 @@ services:
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: finch-redis
+    container_name: chirp-redis
     restart: unless-stopped
     command: redis-server --appendonly yes
     volumes:
@@ -40,11 +40,11 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: development
-    container_name: finch-api
+    container_name: chirp-api
     restart: unless-stopped
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgresql://finch:finch_secret@postgres:5432/finch_db
+      DATABASE_URL: postgresql://chirp:chirp_secret@postgres:5432/chirp_db
       REDIS_URL: redis://redis:6379
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
       JWT_REFRESH_SECRET: your-super-secret-refresh-key-change-in-production
@@ -70,11 +70,11 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: development
-    container_name: finch-worker
+    container_name: chirp-worker
     restart: unless-stopped
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgresql://finch:finch_secret@postgres:5432/finch_db
+      DATABASE_URL: postgresql://chirp:chirp_secret@postgres:5432/chirp_db
       REDIS_URL: redis://redis:6379
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
       JWT_REFRESH_SECRET: your-super-secret-refresh-key-change-in-production
@@ -92,4 +92,4 @@ volumes:
 
 networks:
   default:
-    name: finch-network
+    name: chirp-network

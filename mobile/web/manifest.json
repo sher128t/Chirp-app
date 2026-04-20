@@ -1,6 +1,6 @@
 {
-    "name": "finch_app",
-    "short_name": "finch_app",
+    "name": "chirp_app",
+    "short_name": "chirp_app",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

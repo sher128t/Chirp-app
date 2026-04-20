@@ -1,5 +1,5 @@
-name: finch_app
-description: A Finch-like self-care app with virtual pet, mood tracking, and gamification.
+name: chirp_app
+description: A self-care app with virtual pet, mood tracking, and gamification.
 publish_to: 'none'
 version: 1.0.0+1
 

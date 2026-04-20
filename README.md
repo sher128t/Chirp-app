@@ -1,11 +1,11 @@
-# Finch-Like Self-Care App
+# Chirp 🐦
 
-A production-ready MVP of a Finch-like self-care mobile app featuring a virtual pet, mood tracking, journaling, goals/habits, quests, and gamification.
+A self-care mobile app featuring a virtual pet, mood tracking, journaling, goals/habits, quests, and gamification.
 
 ## 🏗️ Architecture
 
 ```
-finch-app/
+chirp/
 ├── backend/          # NestJS API (Node.js + TypeScript)
 ├── mobile/           # Flutter mobile app (iOS + Android)
 ├── docker-compose.yml
@@ -40,7 +40,7 @@ finch-app/
 
 ```bash
 # Clone and navigate to project
-cd finch-app
+cd chirp
 
 # Start all services (API, Postgres, Redis)
 docker-compose up -d
@@ -340,4 +340,3 @@ MIT License - feel free to use this as a starting point for your own projects!
 ---
 
 Built with ❤️ using NestJS and Flutter
-

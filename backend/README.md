@@ -1,6 +1,6 @@
-# Finch Backend API
+# Chirp Backend API
 
-NestJS backend for the Finch self-care app.
+NestJS backend for the Chirp self-care app.
 
 ## Tech Stack
 
@@ -145,4 +145,3 @@ npx prisma studio
 | `JWT_EXPIRATION` | Access token expiry | `15m` |
 | `JWT_REFRESH_EXPIRATION` | Refresh token expiry | `7d` |
 | `PORT` | Server port | `3000` |
-

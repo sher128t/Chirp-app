@@ -16,20 +16,20 @@ void main() async {
 
   runApp(
     const ProviderScope(
-      child: FinchApp(),
+      child: ChirpApp(),
     ),
   );
 }
 
-class FinchApp extends ConsumerWidget {
-  const FinchApp({super.key});
+class ChirpApp extends ConsumerWidget {
+  const ChirpApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
-      title: 'Finch - Self Care',
+      title: 'Chirp - Self Care',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

@@ -172,7 +172,7 @@ class _SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Finch',
+              'Chirp',
               style: Theme.of(context).textTheme.displayMedium,
             ),
             const SizedBox(height: 8),

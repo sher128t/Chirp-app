@@ -36,7 +36,7 @@ final apiBaseUrlProvider = Provider<String>((ref) {
     return 'http://localhost:3000/api';
   }
   // Production URL (replace with your actual API URL)
-  return 'https://api.finch-app.example.com/api';
+  return 'https://api.chirp-app.example.com/api';
 });
 
 // Dio instance provider

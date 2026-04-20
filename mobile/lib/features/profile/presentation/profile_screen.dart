@@ -242,7 +242,7 @@ class ProfileScreen extends ConsumerWidget {
               // App version
               Center(
                 child: Text(
-                  'Finch v1.0.0',
+                  'Chirp v1.0.0',
                   style: TextStyle(
                     color: Colors.grey[500],
                     fontSize: 12,

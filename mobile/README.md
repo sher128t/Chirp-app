@@ -1,6 +1,6 @@
-# Finch Mobile App
+# Chirp Mobile App
 
-Flutter mobile app for the Finch self-care companion.
+Flutter mobile app for the Chirp self-care companion.
 
 ## Tech Stack
 
@@ -160,4 +160,3 @@ flutter pub run build_runner build
 flutter analyze
 flutter format lib/
 ```
-
